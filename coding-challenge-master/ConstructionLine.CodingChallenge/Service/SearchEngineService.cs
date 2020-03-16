@@ -1,17 +1,54 @@
-﻿using ConstructionLine.CodingChallenge.Lookups;
+﻿using ConstructionLine.CodingChallenge.Common;
+using ConstructionLine.CodingChallenge.Lookups;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ConstructionLine.CodingChallenge.Extensions
+namespace ConstructionLine.CodingChallenge.Service
 {
-    /// <summary>
-    /// Ideally this would be abstracted behind an injectable interface rather than extension methods.
-    /// However, as the requirements state that the given code base shouldn't be refactored,
-    /// i have gone with this approach instead.
-    /// </summary>
-    public static class SearchEngineExtension
+    public interface ISearchEngineService
     {
-        public static SearchResults PerformSearch(this ILookup<SizeLookup, Shirt> shirts, SearchOptions searchOptions)
+        SearchResults Search(SearchOptions searchOptions);
+    }
+
+    public sealed class SearchEngineService : ISearchEngineService
+    {
+        private readonly ILookup<SizeLookup, Shirt> _shirtSizeLookup;
+        private readonly ILookup<ColorLookup, Shirt> _shirtColorLookup;
+        private readonly ILookup<SizeAndColorLookup, Shirt> _shirtSizeColorLookup;
+
+        public SearchEngineService(IShirtService shirtService)
+        {
+            var shirts = shirtService.GetShirts();
+
+            _shirtSizeLookup = shirts.ToLookup(s => new SizeLookup(s.Size), SizeLookup.SizeLookupComparer);
+            _shirtColorLookup = shirts.ToLookup(s => new ColorLookup(s.Color), ColorLookup.ColorLookupComparer);
+            _shirtSizeColorLookup = shirts.ToLookup(s => new SizeAndColorLookup(s.Size, s.Color), SizeAndColorLookup.SizeAndColorLookupComparer);
+        }
+
+        public SearchResults Search(SearchOptions searchOptions)
+        {
+            var shirts = default(SearchResults);
+
+            if (searchOptions != null)
+            {
+                if (searchOptions.Sizes.Any() && searchOptions.Colors.Any())
+                {
+                    shirts = PerformSearch(_shirtSizeColorLookup, searchOptions);
+                }
+                else if (searchOptions.Sizes.Any())
+                {
+                    shirts = PerformSearch(_shirtSizeLookup, searchOptions);
+                }
+                else if (searchOptions.Colors.Any())
+                {
+                    shirts = PerformSearch(_shirtColorLookup, searchOptions);
+                }
+            }
+
+            return shirts;
+        }
+
+        public static SearchResults PerformSearch(ILookup<SizeLookup, Shirt> shirts, SearchOptions searchOptions)
         {
             var searchResult = LookupShirtsBySize(shirts, searchOptions.Sizes);
 
@@ -23,7 +60,7 @@ namespace ConstructionLine.CodingChallenge.Extensions
             };
         }
 
-        public static SearchResults PerformSearch(this ILookup<ColorLookup, Shirt> shirts, SearchOptions searchOptions)
+        public static SearchResults PerformSearch(ILookup<ColorLookup, Shirt> shirts, SearchOptions searchOptions)
         {
             var searchResult = LookupShirtsByColor(shirts, searchOptions.Colors);
 
@@ -35,7 +72,7 @@ namespace ConstructionLine.CodingChallenge.Extensions
             };
         }
 
-        public static SearchResults PerformSearch(this ILookup<SizeAndColorLookup, Shirt> shirts, SearchOptions searchOptions)
+        public static SearchResults PerformSearch(ILookup<SizeAndColorLookup, Shirt> shirts, SearchOptions searchOptions)
         {
             var searchResult = LookupShirtsBySizeAndColor(shirts, searchOptions);
 

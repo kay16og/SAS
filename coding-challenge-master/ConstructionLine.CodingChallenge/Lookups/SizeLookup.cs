@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ConstructionLine.CodingChallenge.Common;
+using System.Collections.Generic;
 
 namespace ConstructionLine.CodingChallenge.Lookups
 {

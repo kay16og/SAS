@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ConstructionLine.CodingChallenge
+namespace ConstructionLine.CodingChallenge.Common
 {
     public class SearchResults
     {

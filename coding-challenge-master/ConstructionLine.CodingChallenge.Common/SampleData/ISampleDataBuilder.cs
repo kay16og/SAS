@@ -1,35 +1,30 @@
-﻿using ConstructionLine.CodingChallenge.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ConstructionLine.CodingChallenge.Tests.SampleData
+namespace ConstructionLine.CodingChallenge.Common.SampleData
 {
-    public class SampleDataBuilder
+    public interface ISampleDataBuilder
     {
-        private readonly int _numberOfShirts;
+        List<Shirt> GetSampleData(int numberOfShirts = 50000);
+    }
 
+    public class SampleDataBuilder : ISampleDataBuilder
+    {
         private readonly Random _random = new Random();
 
-        
-        public SampleDataBuilder(int numberOfShirts)
+
+        public List<Shirt> GetSampleData(int numberOfShirts)
         {
-            _numberOfShirts = numberOfShirts;
-
-        }
-
-
-        public List<Shirt> CreateShirts()
-        {
-            return Enumerable.Range(0, _numberOfShirts)
+            return Enumerable.Range(0, numberOfShirts)
                 .Select(i => new Shirt(Guid.NewGuid(), $"Shirt {i}", GetRandomSize(), GetRandomColor()))
                 .ToList();
         }
 
-       
+
         private Size GetRandomSize()
         {
-            
+
             var sizes = Size.All;
             var index = _random.Next(0, sizes.Count);
             return sizes.ElementAt(index);
